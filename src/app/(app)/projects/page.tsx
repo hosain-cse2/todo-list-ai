@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function ProjectsPage() {
   // This will be the main projects list view for your Todo AI app.
   const mockProjects = [
@@ -15,15 +17,16 @@ export default function ProjectsPage() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {mockProjects.map((project) => (
-          <article
+          <Link
             key={project.id}
-            className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-zinc-900/10 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
+            href={`/projects/${project.id}`}
+            className="block rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-zinc-900/10 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
           >
             <h2 className="text-sm font-medium">{project.name}</h2>
             <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
               {project.description}
             </p>
-          </article>
+          </Link>
         ))}
       </div>
     </div>
