@@ -1,18 +1,15 @@
-version: "3.9"
-
 services:
-  db:
-    image: postgres:16
-    restart: unless-stopped
+  postgres:
+    image: postgres:17
+    container_name: todo_list_ai_db_postgres
     environment:
-      POSTGRES_DB: todo_ai
-      POSTGRES_USER: todo_ai
-      POSTGRES_PASSWORD: todo_ai
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: todo_list_ai_db
     ports:
       - "5432:5432"
     volumes:
-      - todo_ai_pg_data:/var/lib/postgresql/data
+      - todo_list_ai_db_pgdata:/var/lib/postgresql/data
 
 volumes:
-  todo_ai_pg_data:
-
+  todo_list_ai_db_pgdata:
