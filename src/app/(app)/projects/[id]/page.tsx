@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 interface Todo {
   id: string;
@@ -23,8 +24,9 @@ interface ProjectPageProps {
   };
 }
 
-export default function ProjectDetailPage({ params }: ProjectPageProps) {
-  const { id } = params;
+export default function ProjectDetailPage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
 
   // Mock project data - replace with API call later
   const [project, setProject] = useState<Project>({
@@ -84,7 +86,7 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
     setProject({
       ...project,
       todos: project.todos.map((todo) =>
-        todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
+        todo.id === todoId ? { ...todo, completed: !todo.completed } : todo,
       ),
     });
   };
@@ -254,4 +256,3 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
     </div>
   );
 }
-
