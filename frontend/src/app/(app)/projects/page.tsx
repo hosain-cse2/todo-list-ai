@@ -65,9 +65,6 @@ export default function ProjectsPage() {
             Add Project
           </button>
         </div>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-          This is UI-only for now; backend project creation will come later.
-        </p>
       </div>
 
       {isLoading ? (
