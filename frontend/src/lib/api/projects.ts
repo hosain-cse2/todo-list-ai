@@ -30,3 +30,17 @@ export async function getProject(id: string): Promise<Project> {
   return data.project;
 }
 
+export async function createProject(
+  name: string,
+  description?: string,
+): Promise<Project> {
+  const data = await apiFetch<{ project: Project }>(
+    `${API_BASE}/api/projects`,
+    {
+      method: "POST",
+      body: JSON.stringify({ name: name.trim(), description: description?.trim() ?? "" }),
+    },
+  );
+  return data.project;
+}
+

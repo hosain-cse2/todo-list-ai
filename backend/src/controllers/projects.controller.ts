@@ -1,14 +1,17 @@
-import type { Request, Response } from "express";
-import { projects } from "../data/projects";
+import type { Response } from "express";
+import type { AuthRequest } from "../middleware/auth.middleware";
+import * as projectRepository from "../db/repositories/project.repository";
 
-export function list(_req: Request, res: Response): void {
-  // For now, return all projects with their todos (mock data)
+export async function list(req: AuthRequest, res: Response): Promise<void> {
+  const userId = req.user!.sub;
+  const projects = await projectRepository.findManyByUserId(userId);
   res.json({ projects });
 }
 
-export function getById(req: Request, res: Response): void {
+export async function getById(req: AuthRequest, res: Response): Promise<void> {
   const { id } = req.params;
-  const project = projects.find((p) => p.id === id);
+  const userId = req.user!.sub;
+  const project = await projectRepository.findById(id, userId);
 
   if (!project) {
     res.status(404).json({ message: "Project not found" });
@@ -18,11 +21,14 @@ export function getById(req: Request, res: Response): void {
   res.json({ project });
 }
 
-export function create(req: Request, res: Response): void {
-  // Creation not implemented yet – just echo back for now
-  res.status(501).json({
-    message: "Project creation not yet implemented",
-    data: req.body,
-  });
+export async function create(req: AuthRequest, res: Response): Promise<void> {
+  const userId = req.user!.sub;
+  const { name, description } = req.body as { name: string; description?: string };
+  const project = await projectRepository.create(
+    userId,
+    name.trim(),
+    (description ?? "").trim(),
+  );
+  res.status(201).json({ project });
 }
 

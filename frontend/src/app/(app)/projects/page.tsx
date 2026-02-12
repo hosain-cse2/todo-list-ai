@@ -10,6 +10,9 @@ export default function ProjectsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectDescription, setNewProjectDescription] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,6 +37,27 @@ export default function ProjectsPage() {
     };
   }, []);
 
+  const refetch = () => {
+    projectsApi.getProjects().then(setProjects).catch(() => {});
+  };
+
+  const handleCreate = async () => {
+    const name = newProjectName.trim();
+    if (!name) return;
+    setCreateError(null);
+    setIsCreating(true);
+    try {
+      await projectsApi.createProject(name, newProjectDescription);
+      setNewProjectName("");
+      setNewProjectDescription("");
+      refetch();
+    } catch (err: unknown) {
+      setCreateError(err instanceof Error ? err.message : "Failed to create project");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -43,26 +67,33 @@ export default function ProjectsPage() {
         </p>
       </div>
 
-      {/* Add Project UI (no-op for now) */}
+      {/* Add Project */}
       <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="space-y-3">
           <input
             type="text"
             value={newProjectName}
             onChange={(e) => setNewProjectName(e.target.value)}
-            placeholder="New project name..."
-            className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-600"
+            placeholder="Project name"
+            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-600"
           />
+          <textarea
+            value={newProjectDescription}
+            onChange={(e) => setNewProjectDescription(e.target.value)}
+            placeholder="Description (optional)"
+            rows={2}
+            className="w-full resize-none rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-600"
+          />
+          {createError && (
+            <p className="text-sm text-rose-600 dark:text-rose-400">{createError}</p>
+          )}
           <button
             type="button"
-            onClick={() => {
-              // Placeholder – project creation not implemented yet
-              // eslint-disable-next-line no-console
-              console.log("Create project not implemented");
-            }}
-            className="mt-2 inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100 sm:mt-0"
+            onClick={handleCreate}
+            disabled={!newProjectName.trim() || isCreating}
+            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
           >
-            Add Project
+            {isCreating ? "Adding…" : "Add Project"}
           </button>
         </div>
       </div>
@@ -77,8 +108,7 @@ export default function ProjectsPage() {
         </div>
       ) : projects.length === 0 ? (
         <div className="rounded-lg border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-          No projects yet. Use the form above to plan new projects (UI only for
-          now).
+          No projects yet. Add one above to get started.
         </div>
       ) : (
         <div className="space-y-3">
