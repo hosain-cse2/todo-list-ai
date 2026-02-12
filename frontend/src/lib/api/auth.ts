@@ -1,14 +1,20 @@
 import { apiFetch } from "@/lib/fetcher";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+
+export interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
 
 export interface LoginResponse {
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-  };
+  user: User;
+}
+
+export interface MeResponse {
+  user: User;
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
@@ -16,5 +22,9 @@ export async function login(email: string, password: string): Promise<LoginRespo
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
+}
+
+export async function me(): Promise<MeResponse> {
+  return apiFetch<MeResponse>(`${API_BASE}/api/auth/me`);
 }
 

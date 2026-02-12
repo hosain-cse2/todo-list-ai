@@ -43,3 +43,11 @@ export async function login(email: string, plainPassword: string): Promise<Login
     token,
   };
 }
+
+export async function getCurrentUser(userId: string) {
+  const user = await userRepository.findById(userId);
+  if (!user) {
+    throw UnauthorizedError("User not found");
+  }
+  return user;
+}

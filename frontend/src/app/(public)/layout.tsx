@@ -1,8 +1,18 @@
-export default function PublicLayout({
+import { redirect } from "next/navigation";
+import { checkSession } from "@/lib/auth";
+
+export default async function PublicLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const hasSession = await checkSession();
+
+  // If logged in and trying to access public route, redirect to dashboard
+  if (hasSession) {
+    redirect("/dashboard");
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-50 via-white to-zinc-100 px-4 py-12 dark:from-zinc-950 dark:via-black dark:to-zinc-900">
       <div className="w-full max-w-md">
