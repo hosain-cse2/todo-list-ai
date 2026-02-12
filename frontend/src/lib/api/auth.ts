@@ -28,3 +28,9 @@ export async function me(): Promise<MeResponse> {
   return apiFetch<MeResponse>(`${API_BASE}/api/auth/me`);
 }
 
+export async function logout(): Promise<void> {
+  await apiFetch<{ ok: boolean }>(`${API_BASE}/api/auth/logout`, {
+    method: "POST",
+  });
+}
+

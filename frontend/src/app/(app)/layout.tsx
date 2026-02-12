@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { checkSession } from "@/lib/auth";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default async function AppLayout({
   children,
@@ -20,9 +21,10 @@ export default async function AppLayout({
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
             Todo AI
           </span>
-          <nav className="flex gap-4 text-sm text-zinc-600 dark:text-zinc-400">
+          <nav className="flex items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400">
             <span>Projects</span>
             <span>Settings</span>
+            <LogoutButton />
           </nav>
         </div>
       </header>

@@ -45,3 +45,20 @@ export async function me(
     next(err);
   }
 }
+
+export function logout(_req: Request, res: Response, next: NextFunction): void {
+  try {
+    // Clear the accessToken cookie (same path/options as when set)
+    res
+      .clearCookie("accessToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+      })
+      .status(200)
+      .json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+}

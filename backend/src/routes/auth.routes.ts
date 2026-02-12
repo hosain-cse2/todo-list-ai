@@ -1,6 +1,10 @@
 import { Router } from "express";
 import Joi from "joi";
-import { login as authLogin, me as authMe } from "../controllers/auth.controller";
+import {
+  login as authLogin,
+  me as authMe,
+  logout as authLogout,
+} from "../controllers/auth.controller";
 import { validate } from "../middleware/validate.middleware";
 import { requireAuth } from "../middleware/auth.middleware";
 
@@ -13,5 +17,6 @@ const loginSchema = Joi.object({
 
 router.post("/login", validate(loginSchema), authLogin);
 router.get("/me", requireAuth, authMe);
+router.post("/logout", authLogout);
 
 export default router;
