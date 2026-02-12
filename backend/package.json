@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node index.js",
-    "start": "node index.js",
+    "dev": "tsx watch index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
     "seed": "npx prisma db seed",
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push"
@@ -14,10 +15,17 @@
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.4",
     "express": "^4.21.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
     "prisma": "^6.0.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^20",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.0",
     "typescript": "^5"
   },
   "prisma": {
