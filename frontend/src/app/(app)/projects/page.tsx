@@ -81,67 +81,67 @@ export default function ProjectsPage() {
           now).
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {projects.map((project) => (
-            <div
-              key={project.id}
-              className="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-medium">{project.name}</h2>
-                  {/* Delete UI only – no behavior yet */}
-                  <button
-                    type="button"
-                    className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-                    onClick={() => {
-                      // Placeholder – delete not implemented yet
-                      // eslint-disable-next-line no-console
-                      console.log("Delete project not implemented");
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-                <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-                  {project.description}
-                </p>
-              </div>
+        <div className="space-y-3">
+          {projects.map((project) => {
+            const total = project.todos.length;
+            const completed = project.todos.filter((t) => t.completed).length;
+            const pending = total - completed;
 
-              <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-                <div>
-                  <div>Total</div>
-                  <div className="font-semibold text-zinc-900 dark:text-zinc-50">
-                    {project.todos.length}
+            return (
+              <div
+                key={project.id}
+                className="flex overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+              >
+                {/* Accent stripe */}
+                <div
+                  className="w-1.5 shrink-0 bg-zinc-400 dark:bg-zinc-600"
+                  aria-hidden
+                />
+                <div className="min-w-0 flex-1 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+                        {project.name}
+                      </h2>
+                      <p className="mt-0.5 text-sm text-zinc-600 dark:text-zinc-400">
+                        {project.description}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                        {total} total
+                      </span>
+                      <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                        {completed} done
+                      </span>
+                      <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                        {pending} to do
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div>Completed</div>
-                  <div className="font-semibold text-zinc-900 dark:text-zinc-50">
-                    {project.todos.filter((t) => t.completed).length}
-                  </div>
-                </div>
-                <div>
-                  <div>Pending</div>
-                  <div className="font-semibold text-zinc-900 dark:text-zinc-50">
-                    {
-                      project.todos.length -
-                      project.todos.filter((t) => t.completed).length
-                    }
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Link
+                      href={`/projects/${project.id}`}
+                      className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                    >
+                      Open project
+                    </Link>
+                    <button
+                      type="button"
+                      className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                      onClick={() => {
+                        // Placeholder – delete not implemented yet
+                        // eslint-disable-next-line no-console
+                        console.log("Delete project not implemented");
+                      }}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               </div>
-
-              <div className="mt-4 flex justify-end gap-2">
-                <Link
-                  href={`/projects/${project.id}`}
-                  className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                >
-                  View project
-                </Link>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

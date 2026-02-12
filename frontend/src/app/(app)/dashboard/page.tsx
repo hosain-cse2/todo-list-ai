@@ -112,70 +112,44 @@ export default function DashboardPage() {
             No projects yet. You can create one from the Projects page.
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {projects.map((project) => {
-              const total = project.todos.length;
-              const completed = project.todos.filter((t) => t.completed).length;
-              const pending = total - completed;
+          <div className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+            <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              {projects.map((project) => {
+                const total = project.todos.length;
+                const completed = project.todos.filter((t) => t.completed).length;
+                const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-              return (
-                <div
-                  key={project.id}
-                  className="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium">{project.name}</h3>
-                      {/* Delete UI only – no behavior yet */}
-                      <button
-                        type="button"
-                        className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-                        onClick={() => {
-                          // Placeholder – delete not implemented yet
-                          // eslint-disable-next-line no-console
-                          console.log("Delete project not implemented");
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      {project.description}
-                    </p>
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-                    <div>
-                      <div>Total</div>
-                      <div className="font-semibold text-zinc-900 dark:text-zinc-50">
-                        {total}
+                return (
+                  <li key={project.id} className="flex items-center gap-4 p-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <Link
+                          href={`/projects/${project.id}`}
+                          className="truncate text-sm font-medium text-zinc-900 hover:underline dark:text-zinc-50"
+                        >
+                          {project.name}
+                        </Link>
+                        <span className="shrink-0 text-xs text-zinc-500 dark:text-zinc-400">
+                          {completed}/{total}
+                        </span>
+                      </div>
+                      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                        <div
+                          className="h-full rounded-full bg-zinc-700 dark:bg-zinc-300"
+                          style={{ width: `${pct}%` }}
+                        />
                       </div>
                     </div>
-                    <div>
-                      <div>Completed</div>
-                      <div className="font-semibold text-zinc-900 dark:text-zinc-50">
-                        {completed}
-                      </div>
-                    </div>
-                    <div>
-                      <div>Pending</div>
-                      <div className="font-semibold text-zinc-900 dark:text-zinc-50">
-                        {pending}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex justify-end gap-2">
                     <Link
                       href={`/projects/${project.id}`}
-                      className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                      className="shrink-0 text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                     >
-                      View project
+                      Open →
                     </Link>
-                  </div>
-                </div>
-              );
-            })}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         )}
       </div>
