@@ -13,6 +13,9 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [newTodoText, setNewTodoText] = useState("");
+  const [isAddingTodo, setIsAddingTodo] = useState(false);
+  const [addTodoError, setAddTodoError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -38,6 +41,24 @@ export default function ProjectDetailPage() {
       cancelled = true;
     };
   }, [id]);
+
+  const handleAddTodo = async () => {
+    const text = newTodoText.trim();
+    if (!text || !id) return;
+    setAddTodoError(null);
+    setIsAddingTodo(true);
+    try {
+      const todo = await projectsApi.createTodo(id, text);
+      setProject((prev) =>
+        prev ? { ...prev, todos: [todo, ...prev.todos] } : null,
+      );
+      setNewTodoText("");
+    } catch (err: unknown) {
+      setAddTodoError(err instanceof Error ? err.message : "Failed to add todo");
+    } finally {
+      setIsAddingTodo(false);
+    }
+  };
 
   const { totalCount, completedCount, pendingCount } = useMemo(() => {
     if (!project) {
@@ -112,26 +133,29 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {/* Add Todo Form (UI only for now) */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value=""
-          readOnly
-          placeholder="Add a new todo to this project..."
-          className="flex-1 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-600"
-        />
-        <button
-          type="button"
-          onClick={() => {
-            // Placeholder – add todo not implemented yet
-            // eslint-disable-next-line no-console
-            console.log("Add todo not implemented");
-          }}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-        >
-          Add Todo
-        </button>
+      {/* Add Todo */}
+      <div className="space-y-2">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newTodoText}
+            onChange={(e) => setNewTodoText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddTodo()}
+            placeholder="Add a new todo to this project..."
+            className="flex-1 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-600"
+          />
+          <button
+            type="button"
+            onClick={handleAddTodo}
+            disabled={!newTodoText.trim() || isAddingTodo}
+            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+          >
+            {isAddingTodo ? "Adding…" : "Add Todo"}
+          </button>
+        </div>
+        {addTodoError && (
+          <p className="text-sm text-rose-600 dark:text-rose-400">{addTodoError}</p>
+        )}
       </div>
 
       {/* Todo List */}

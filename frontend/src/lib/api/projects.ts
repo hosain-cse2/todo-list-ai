@@ -44,3 +44,14 @@ export async function createProject(
   return data.project;
 }
 
+export async function createTodo(projectId: string, text: string): Promise<Todo> {
+  const data = await apiFetch<{ todo: Todo }>(
+    `${API_BASE}/api/projects/${projectId}/todos`,
+    {
+      method: "POST",
+      body: JSON.stringify({ text: text.trim() }),
+    },
+  );
+  return data.todo;
+}
+

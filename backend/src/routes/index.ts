@@ -6,6 +6,7 @@ import {
   list as projectsList,
   getById as projectsGetById,
   create as projectsCreate,
+  createTodo as projectsCreateTodo,
 } from "../controllers/projects.controller";
 import { requireAuth } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
@@ -17,11 +18,16 @@ const createProjectSchema = Joi.object({
   description: Joi.string().allow("").default(""),
 });
 
+const createTodoSchema = Joi.object({
+  text: Joi.string().trim().min(1).required(),
+});
+
 router.get("/health", healthGet);
 
 router.get("/projects", requireAuth, projectsList);
 router.get("/projects/:id", requireAuth, projectsGetById);
 router.post("/projects", requireAuth, validate(createProjectSchema), projectsCreate);
+router.post("/projects/:id/todos", requireAuth, validate(createTodoSchema), projectsCreateTodo);
 
 router.use("/auth", authRoutes);
 
