@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { authApi } from "@/lib/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -10,8 +11,15 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Add login logic here
-    setTimeout(() => setIsLoading(false), 1000);
+    try {
+      const data = await authApi.login(email, password);
+      // For now, just log the token as requested.
+      console.log("Login token:", data.token);
+    } catch (error) {
+      console.error("Login error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
