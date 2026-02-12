@@ -66,3 +66,14 @@ export async function deleteProject(projectId: string): Promise<void> {
   }
 }
 
+export async function deleteTodo(projectId: string, todoId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/projects/${projectId}/todos/${todoId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`API request failed with ${res.status} ${res.statusText}: ${text}`);
+  }
+}
+

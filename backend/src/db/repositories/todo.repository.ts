@@ -5,3 +5,9 @@ export async function create(projectId: string, text: string) {
     data: { projectId, text: text.trim() },
   });
 }
+
+export async function deleteById(todoId: string, projectId: string) {
+  return prisma.todo.deleteMany({
+    where: { id: todoId, projectId },
+  });
+}

@@ -7,6 +7,7 @@ import {
   getById as projectsGetById,
   create as projectsCreate,
   createTodo as projectsCreateTodo,
+  deleteTodo as projectsDeleteTodo,
   remove as projectsRemove,
 } from "../controllers/projects.controller";
 import { requireAuth } from "../middleware/auth.middleware";
@@ -30,6 +31,7 @@ router.get("/projects/:id", requireAuth, projectsGetById);
 router.post("/projects", requireAuth, validate(createProjectSchema), projectsCreate);
 router.delete("/projects/:id", requireAuth, projectsRemove);
 router.post("/projects/:id/todos", requireAuth, validate(createTodoSchema), projectsCreateTodo);
+router.delete("/projects/:id/todos/:todoId", requireAuth, projectsDeleteTodo);
 
 router.use("/auth", authRoutes);
 

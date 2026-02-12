@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { projectsApi } from "@/lib/api";
 import type { Project } from "@/lib/api/projects";
+import { formatDateGerman } from "@/lib/utils";
 
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
@@ -16,6 +17,7 @@ export default function ProjectDetailPage() {
   const [newTodoText, setNewTodoText] = useState("");
   const [isAddingTodo, setIsAddingTodo] = useState(false);
   const [addTodoError, setAddTodoError] = useState<string | null>(null);
+  const [deletingTodoId, setDeletingTodoId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -41,6 +43,19 @@ export default function ProjectDetailPage() {
       cancelled = true;
     };
   }, [id]);
+
+  const handleDeleteTodo = async (todoId: string) => {
+    if (!id) return;
+    setDeletingTodoId(todoId);
+    try {
+      await projectsApi.deleteTodo(id, todoId);
+      setProject((prev) =>
+        prev ? { ...prev, todos: prev.todos.filter((t) => t.id !== todoId) } : null,
+      );
+    } finally {
+      setDeletingTodoId(null);
+    }
+  };
 
   const handleAddTodo = async () => {
     const text = newTodoText.trim();
@@ -191,18 +206,15 @@ export default function ProjectDetailPage() {
                         {todo.text}
                       </span>
                       <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {todo.createdAt}
+                        {formatDateGerman(todo.createdAt)}
                       </span>
                       <button
                         type="button"
-                        onClick={() => {
-                          // Placeholder – delete todo not implemented yet
-                          // eslint-disable-next-line no-console
-                          console.log("Delete todo not implemented");
-                        }}
-                        className="rounded px-2 py-1 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                        onClick={() => handleDeleteTodo(todo.id)}
+                        disabled={deletingTodoId === todo.id}
+                        className="rounded px-2 py-1 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                       >
-                        Delete
+                        {deletingTodoId === todo.id ? "…" : "Delete"}
                       </button>
                     </div>
                   ))}
@@ -232,18 +244,15 @@ export default function ProjectDetailPage() {
                         {todo.text}
                       </span>
                       <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {todo.createdAt}
+                        {formatDateGerman(todo.createdAt)}
                       </span>
                       <button
                         type="button"
-                        onClick={() => {
-                          // Placeholder – delete todo not implemented yet
-                          // eslint-disable-next-line no-console
-                          console.log("Delete todo not implemented");
-                        }}
-                        className="rounded px-2 py-1 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                        onClick={() => handleDeleteTodo(todo.id)}
+                        disabled={deletingTodoId === todo.id}
+                        className="rounded px-2 py-1 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                       >
-                        Delete
+                        {deletingTodoId === todo.id ? "…" : "Delete"}
                       </button>
                     </div>
                   ))}
