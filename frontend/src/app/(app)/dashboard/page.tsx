@@ -1,134 +1,185 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { Project } from "@/lib/api/projects";
+import { projectsApi } from "@/lib/api";
+import Link from "next/link";
 
-interface Todo {
-  id: string;
-  text: string;
-  completed: boolean;
+interface DashboardStats {
+  totalTodos: number;
+  completedTodos: number;
+  pendingTodos: number;
 }
 
 export default function DashboardPage() {
-  const [todos, setTodos] = useState<Todo[]>([
-    { id: "1", text: "Complete project proposal", completed: false },
-    { id: "2", text: "Review code changes", completed: true },
-    { id: "3", text: "Update documentation", completed: false },
-  ]);
-  const [newTodo, setNewTodo] = useState("");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const addTodo = () => {
-    if (newTodo.trim()) {
-      setTodos([
-        ...todos,
-        { id: Date.now().toString(), text: newTodo, completed: false },
-      ]);
-      setNewTodo("");
-    }
-  };
+  useEffect(() => {
+    let cancelled = false;
 
-  const toggleTodo = (id: string) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo,
-      ),
-    );
-  };
+    projectsApi
+      .getProjects()
+      .then((data) => {
+        if (!cancelled) {
+          setProjects(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load data");
+          setIsLoading(false);
+        }
+      });
 
-  const deleteTodo = (id: string) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-  };
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const completedCount = todos.filter((todo) => todo.completed).length;
-  const totalCount = todos.length;
+  const stats: DashboardStats = useMemo(() => {
+    const allTodos = projects.flatMap((p) => p.todos);
+    const totalTodos = allTodos.length;
+    const completedTodos = allTodos.filter((t) => t.completed).length;
+    const pendingTodos = totalTodos - completedTodos;
+
+    return { totalTodos, completedTodos, pendingTodos };
+  }, [projects]);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Manage your todos and stay organized.
+          Overview of your projects and their todos.
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Global Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">Total</div>
-          <div className="mt-1 text-2xl font-semibold">{totalCount}</div>
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+            Total Todos
+          </div>
+          <div className="mt-1 text-2xl font-semibold">
+            {stats.totalTodos}
+          </div>
         </div>
         <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
             Completed
           </div>
-          <div className="mt-1 text-2xl font-semibold">{completedCount}</div>
+          <div className="mt-1 text-2xl font-semibold">
+            {stats.completedTodos}
+          </div>
         </div>
         <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
             Pending
           </div>
           <div className="mt-1 text-2xl font-semibold">
-            {totalCount - completedCount}
+            {stats.pendingTodos}
           </div>
         </div>
       </div>
 
-      {/* Add Todo Form */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={newTodo}
-          onChange={(e) => setNewTodo(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addTodo()}
-          placeholder="Add a new todo..."
-          className="flex-1 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-600"
-        />
-        <button
-          onClick={addTodo}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
-        >
-          Add
-        </button>
-      </div>
+      {/* Projects Overview */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            Projects
+          </h2>
+          <Link
+            href="/projects"
+            className="text-xs font-medium text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400"
+          >
+            View all projects
+          </Link>
+        </div>
 
-      {/* Todo List */}
-      <div className="space-y-2">
-        {todos.length === 0 ? (
-          <div className="rounded-lg border border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-950">
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              No todos yet. Add one above to get started!
-            </p>
+        {isLoading ? (
+          <div className="rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+            Loading projects...
+          </div>
+        ) : error ? (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
+            {error}
+          </div>
+        ) : projects.length === 0 ? (
+          <div className="rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+            No projects yet. You can create one from the Projects page.
           </div>
         ) : (
-          todos.map((todo) => (
-            <div
-              key={todo.id}
-              className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
-            >
-              <input
-                type="checkbox"
-                checked={todo.completed}
-                onChange={() => toggleTodo(todo.id)}
-                className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:text-zinc-50"
-              />
-              <span
-                className={`flex-1 text-sm ${
-                  todo.completed
-                    ? "text-zinc-500 line-through dark:text-zinc-500"
-                    : "text-zinc-900 dark:text-zinc-50"
-                }`}
-              >
-                {todo.text}
-              </span>
-              <button
-                onClick={() => deleteTodo(todo.id)}
-                className="rounded px-2 py-1 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-              >
-                Delete
-              </button>
-            </div>
-          ))
+          <div className="grid gap-4 sm:grid-cols-2">
+            {projects.map((project) => {
+              const total = project.todos.length;
+              const completed = project.todos.filter((t) => t.completed).length;
+              const pending = total - completed;
+
+              return (
+                <div
+                  key={project.id}
+                  className="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-medium">{project.name}</h3>
+                      {/* Delete UI only – no behavior yet */}
+                      <button
+                        type="button"
+                        className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                        onClick={() => {
+                          // Placeholder – delete not implemented yet
+                          // eslint-disable-next-line no-console
+                          console.log("Delete project not implemented");
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                      {project.description}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                    <div>
+                      <div>Total</div>
+                      <div className="font-semibold text-zinc-900 dark:text-zinc-50">
+                        {total}
+                      </div>
+                    </div>
+                    <div>
+                      <div>Completed</div>
+                      <div className="font-semibold text-zinc-900 dark:text-zinc-50">
+                        {completed}
+                      </div>
+                    </div>
+                    <div>
+                      <div>Pending</div>
+                      <div className="font-semibold text-zinc-900 dark:text-zinc-50">
+                        {pending}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex justify-end gap-2">
+                    <Link
+                      href={`/projects/${project.id}`}
+                      className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    >
+                      View project
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
   );
 }
+
