@@ -1,20 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const data = await authApi.login(email, password);
-      // For now, just log the token as requested.
-      console.log("Login token:", data.token);
+      await authApi.login(email, password);
+      router.push("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
     } finally {

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import config from "./src/config";
 import routes from "./src/routes";
 import { errorHandler } from "./src/middleware/error.middleware";
@@ -13,6 +14,7 @@ app.use(
     credentials: true,
   }),
 );
+app.use(cookieParser());
 app.use(express.json());
 app.use("/api", routes);
 app.use(errorHandler);
