@@ -13,6 +13,7 @@ export default function ProjectsPage() {
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,6 +40,19 @@ export default function ProjectsPage() {
 
   const refetch = () => {
     projectsApi.getProjects().then(setProjects).catch(() => {});
+  };
+
+  const handleDelete = async (projectId: string) => {
+    if (!confirm("Delete this project and all its todos?")) return;
+    setDeletingId(projectId);
+    try {
+      await projectsApi.deleteProject(projectId);
+      refetch();
+    } catch {
+      // could set error state
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleCreate = async () => {
@@ -158,14 +172,11 @@ export default function ProjectsPage() {
                     </Link>
                     <button
                       type="button"
-                      className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                      onClick={() => {
-                        // Placeholder – delete not implemented yet
-                        // eslint-disable-next-line no-console
-                        console.log("Delete project not implemented");
-                      }}
+                      className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 disabled:opacity-50"
+                      onClick={() => handleDelete(project.id)}
+                      disabled={deletingId === project.id}
                     >
-                      Delete
+                      {deletingId === project.id ? "Deleting…" : "Delete"}
                     </button>
                   </div>
                 </div>

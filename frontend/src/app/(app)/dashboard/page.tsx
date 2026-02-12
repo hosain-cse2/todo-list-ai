@@ -39,6 +39,23 @@ export default function DashboardPage() {
     };
   }, []);
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const refetch = () => {
+    projectsApi.getProjects().then(setProjects).catch(() => {});
+  };
+
+  const handleDelete = async (projectId: string) => {
+    if (!confirm("Delete this project and all its todos?")) return;
+    setDeletingId(projectId);
+    try {
+      await projectsApi.deleteProject(projectId);
+      refetch();
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const stats: DashboardStats = useMemo(() => {
     const allTodos = projects.flatMap((p) => p.todos);
     const totalTodos = allTodos.length;
@@ -140,12 +157,22 @@ export default function DashboardPage() {
                         />
                       </div>
                     </div>
-                    <Link
-                      href={`/projects/${project.id}`}
-                      className="shrink-0 text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                    >
-                      Open →
-                    </Link>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Link
+                        href={`/projects/${project.id}`}
+                        className="text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                      >
+                        Open →
+                      </Link>
+                      <button
+                        type="button"
+                        className="text-xs text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400 disabled:opacity-50"
+                        onClick={() => handleDelete(project.id)}
+                        disabled={deletingId === project.id}
+                      >
+                        {deletingId === project.id ? "…" : "Delete"}
+                      </button>
+                    </div>
                   </li>
                 );
               })}

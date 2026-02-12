@@ -48,3 +48,16 @@ export async function createTodo(req: AuthRequest, res: Response): Promise<void>
   res.status(201).json({ todo });
 }
 
+export async function remove(req: AuthRequest, res: Response): Promise<void> {
+  const { id } = req.params;
+  const userId = req.user!.sub;
+
+  const result = await projectRepository.deleteById(id, userId);
+  if (result.count === 0) {
+    res.status(404).json({ message: "Project not found" });
+    return;
+  }
+
+  res.status(204).send();
+}
+

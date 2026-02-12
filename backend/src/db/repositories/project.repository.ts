@@ -31,3 +31,9 @@ export async function findById(id: string, userId?: string) {
     },
   });
 }
+
+export async function deleteById(id: string, userId: string) {
+  return prisma.project.deleteMany({
+    where: { id, userId },
+  });
+}
