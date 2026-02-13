@@ -9,6 +9,7 @@ import {
   update as projectsUpdate,
   createTodo as projectsCreateTodo,
   deleteTodo as projectsDeleteTodo,
+  updateTodo as projectsUpdateTodo,
   remove as projectsRemove,
 } from "../controllers/projects.controller";
 import { requireAuth } from "../middleware/auth.middleware";
@@ -30,6 +31,11 @@ const updateProjectSchema = Joi.object({
   description: Joi.string().allow(""),
 }).min(1);
 
+const updateTodoSchema = Joi.object({
+  text: Joi.string().trim().min(1),
+  completed: Joi.boolean(),
+}).min(1);
+
 router.get("/health", healthGet);
 
 router.get("/projects", requireAuth, projectsList);
@@ -38,6 +44,7 @@ router.post("/projects", requireAuth, validate(createProjectSchema), projectsCre
 router.patch("/projects/:id", requireAuth, validate(updateProjectSchema), projectsUpdate);
 router.delete("/projects/:id", requireAuth, projectsRemove);
 router.post("/projects/:id/todos", requireAuth, validate(createTodoSchema), projectsCreateTodo);
+router.patch("/projects/:id/todos/:todoId", requireAuth, validate(updateTodoSchema), projectsUpdateTodo);
 router.delete("/projects/:id/todos/:todoId", requireAuth, projectsDeleteTodo);
 
 router.use("/auth", authRoutes);

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { projectsApi } from "@/lib/api";
-import type { Project } from "@/lib/api/projects";
+import type { Project, Todo } from "@/lib/api/projects";
 import { formatDateGerman } from "@/lib/utils";
 
 export default function ProjectDetailPage() {
@@ -18,6 +18,11 @@ export default function ProjectDetailPage() {
   const [isAddingTodo, setIsAddingTodo] = useState(false);
   const [addTodoError, setAddTodoError] = useState<string | null>(null);
   const [deletingTodoId, setDeletingTodoId] = useState<string | null>(null);
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [editTodoText, setEditTodoText] = useState("");
+  const [savingTodoId, setSavingTodoId] = useState<string | null>(null);
+  const [editTodoError, setEditTodoError] = useState<string | null>(null);
+  const [togglingTodoId, setTogglingTodoId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
@@ -59,6 +64,64 @@ export default function ProjectDetailPage() {
       );
     } finally {
       setDeletingTodoId(null);
+    }
+  };
+
+  const startEditingTodo = (todo: Todo) => {
+    setEditingTodoId(todo.id);
+    setEditTodoText(todo.text);
+    setEditTodoError(null);
+  };
+
+  const cancelEditingTodo = () => {
+    setEditingTodoId(null);
+    setEditTodoError(null);
+  };
+
+  const handleSaveTodoEdit = async () => {
+    if (!id || !editingTodoId) return;
+    const text = editTodoText.trim();
+    if (!text) {
+      setEditTodoError("Text is required");
+      return;
+    }
+    setEditTodoError(null);
+    setSavingTodoId(editingTodoId);
+    try {
+      const updated = await projectsApi.updateTodo(id, editingTodoId, { text });
+      setProject((prev) =>
+        prev
+          ? {
+              ...prev,
+              todos: prev.todos.map((t) => (t.id === updated.id ? updated : t)),
+            }
+          : null,
+      );
+      setEditingTodoId(null);
+    } catch (err: unknown) {
+      setEditTodoError(err instanceof Error ? err.message : "Failed to update todo");
+    } finally {
+      setSavingTodoId(null);
+    }
+  };
+
+  const handleToggleComplete = async (todo: Todo) => {
+    if (!id) return;
+    setTogglingTodoId(todo.id);
+    try {
+      const updated = await projectsApi.updateTodo(id, todo.id, {
+        completed: !todo.completed,
+      });
+      setProject((prev) =>
+        prev
+          ? {
+              ...prev,
+              todos: prev.todos.map((t) => (t.id === updated.id ? updated : t)),
+            }
+          : null,
+      );
+    } finally {
+      setTogglingTodoId(null);
     }
   };
 
@@ -264,6 +327,9 @@ export default function ProjectDetailPage() {
         {addTodoError && (
           <p className="text-sm text-rose-600 dark:text-rose-400">{addTodoError}</p>
         )}
+        {editTodoError && (
+          <p className="text-sm text-rose-600 dark:text-rose-400">{editTodoError}</p>
+        )}
       </div>
 
       {/* Todo List */}
@@ -292,23 +358,65 @@ export default function ProjectDetailPage() {
                       <input
                         type="checkbox"
                         checked={todo.completed}
-                        readOnly
+                        onChange={() => handleToggleComplete(todo)}
+                        disabled={togglingTodoId === todo.id}
                         className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:text-zinc-50"
                       />
-                      <span className="flex-1 text-sm text-zinc-900 dark:text-zinc-50">
-                        {todo.text}
-                      </span>
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {formatDateGerman(todo.createdAt)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteTodo(todo.id)}
-                        disabled={deletingTodoId === todo.id}
-                        className="rounded px-2 py-1 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                      >
-                        {deletingTodoId === todo.id ? "…" : "Delete"}
-                      </button>
+                      {editingTodoId === todo.id ? (
+                        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+                          <input
+                            type="text"
+                            value={editTodoText}
+                            onChange={(e) => setEditTodoText(e.target.value)}
+                            placeholder="Todo text"
+                            className="min-w-0 flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+                          />
+                          <div className="flex gap-1">
+                            <button
+                              type="button"
+                              onClick={handleSaveTodoEdit}
+                              disabled={savingTodoId === todo.id}
+                              className="rounded bg-zinc-900 px-2 py-1 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                            >
+                              {savingTodoId === todo.id ? "…" : "Save"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEditingTodo}
+                              disabled={savingTodoId === todo.id}
+                              className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="flex-1 text-sm text-zinc-900 dark:text-zinc-50">
+                          {todo.text}
+                        </span>
+                      )}
+                      {editingTodoId !== todo.id && (
+                        <>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {formatDateGerman(todo.createdAt)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => startEditingTodo(todo)}
+                            className="rounded px-2 py-1 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteTodo(todo.id)}
+                            disabled={deletingTodoId === todo.id}
+                            className="rounded px-2 py-1 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                          >
+                            {deletingTodoId === todo.id ? "…" : "Delete"}
+                          </button>
+                        </>
+                      )}
                     </div>
                   ))}
               </div>
@@ -330,23 +438,65 @@ export default function ProjectDetailPage() {
                       <input
                         type="checkbox"
                         checked={todo.completed}
-                        readOnly
+                        onChange={() => handleToggleComplete(todo)}
+                        disabled={togglingTodoId === todo.id}
                         className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:text-zinc-50"
                       />
-                      <span className="flex-1 text-sm text-zinc-500 line-through dark:text-zinc-500">
-                        {todo.text}
-                      </span>
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {formatDateGerman(todo.createdAt)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteTodo(todo.id)}
-                        disabled={deletingTodoId === todo.id}
-                        className="rounded px-2 py-1 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                      >
-                        {deletingTodoId === todo.id ? "…" : "Delete"}
-                      </button>
+                      {editingTodoId === todo.id ? (
+                        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+                          <input
+                            type="text"
+                            value={editTodoText}
+                            onChange={(e) => setEditTodoText(e.target.value)}
+                            placeholder="Todo text"
+                            className="min-w-0 flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+                          />
+                          <div className="flex gap-1">
+                            <button
+                              type="button"
+                              onClick={handleSaveTodoEdit}
+                              disabled={savingTodoId === todo.id}
+                              className="rounded bg-zinc-900 px-2 py-1 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                            >
+                              {savingTodoId === todo.id ? "…" : "Save"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEditingTodo}
+                              disabled={savingTodoId === todo.id}
+                              className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="flex-1 text-sm text-zinc-500 line-through dark:text-zinc-500">
+                          {todo.text}
+                        </span>
+                      )}
+                      {editingTodoId !== todo.id && (
+                        <>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {formatDateGerman(todo.createdAt)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => startEditingTodo(todo)}
+                            className="rounded px-2 py-1 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteTodo(todo.id)}
+                            disabled={deletingTodoId === todo.id}
+                            className="rounded px-2 py-1 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                          >
+                            {deletingTodoId === todo.id ? "…" : "Delete"}
+                          </button>
+                        </>
+                      )}
                     </div>
                   ))}
               </div>

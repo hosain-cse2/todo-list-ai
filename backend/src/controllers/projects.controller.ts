@@ -67,6 +67,30 @@ export async function deleteTodo(req: AuthRequest, res: Response): Promise<void>
   res.status(204).send();
 }
 
+export async function updateTodo(req: AuthRequest, res: Response): Promise<void> {
+  const { id: projectId, todoId } = req.params;
+  const userId = req.user!.sub;
+  const { text, completed } = req.body as { text?: string; completed?: boolean };
+
+  const project = await projectRepository.findById(projectId, userId);
+  if (!project) {
+    res.status(404).json({ message: "Project not found" });
+    return;
+  }
+
+  const todo = await todoRepository.update(todoId, project.id, {
+    ...(text !== undefined && { text }),
+    ...(completed !== undefined && { completed }),
+  });
+
+  if (!todo) {
+    res.status(404).json({ message: "Todo not found" });
+    return;
+  }
+
+  res.json({ todo });
+}
+
 export async function update(req: AuthRequest, res: Response): Promise<void> {
   const { id } = req.params;
   const userId = req.user!.sub;

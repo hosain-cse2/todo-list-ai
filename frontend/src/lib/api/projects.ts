@@ -83,6 +83,24 @@ export async function deleteProject(projectId: string): Promise<void> {
   }
 }
 
+export async function updateTodo(
+  projectId: string,
+  todoId: string,
+  data: { text?: string; completed?: boolean },
+): Promise<Todo> {
+  const body: { text?: string; completed?: boolean } = {};
+  if (data.text !== undefined) body.text = data.text.trim();
+  if (data.completed !== undefined) body.completed = data.completed;
+  const res = await apiFetch<{ todo: Todo }>(
+    `${API_BASE}/api/projects/${projectId}/todos/${todoId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    },
+  );
+  return res.todo;
+}
+
 export async function deleteTodo(projectId: string, todoId: string): Promise<void> {
   const res = await fetch(`${API_BASE}/api/projects/${projectId}/todos/${todoId}`, {
     method: "DELETE",
