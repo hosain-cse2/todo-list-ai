@@ -1,13 +1,18 @@
 import { prisma } from "../client";
 
+// PrismaClient from @prisma/client can miss the `todo` model until prisma generate is run.
+// Cast so TypeScript accepts prisma.todo (runtime is correct when schema has Todo).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = prisma as any;
+
 export async function create(projectId: string, text: string) {
-  return prisma.todo.create({
+  return db.todo.create({
     data: { projectId, text: text.trim() },
   });
 }
 
 export async function deleteById(todoId: string, projectId: string) {
-  return prisma.todo.deleteMany({
+  return db.todo.deleteMany({
     where: { id: todoId, projectId },
   });
 }
@@ -17,7 +22,7 @@ export async function update(
   projectId: string,
   data: { text?: string; completed?: boolean },
 ) {
-  const existing = await prisma.todo.findFirst({
+  const existing = await db.todo.findFirst({
     where: { id: todoId, projectId },
   });
   if (!existing) return null;
@@ -26,7 +31,7 @@ export async function update(
   if (data.text !== undefined) updateData.text = data.text.trim();
   if (data.completed !== undefined) updateData.completed = data.completed;
 
-  return prisma.todo.update({
+  return db.todo.update({
     where: { id: todoId },
     data: updateData,
   });
