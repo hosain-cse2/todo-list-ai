@@ -10,6 +10,7 @@ import {
   createTodo as projectsCreateTodo,
   deleteTodo as projectsDeleteTodo,
   updateTodo as projectsUpdateTodo,
+  generateTodos as projectsGenerateTodos,
   remove as projectsRemove,
 } from "../controllers/projects.controller";
 import { requireAuth } from "../middleware/auth.middleware";
@@ -44,6 +45,7 @@ router.post("/projects", requireAuth, validate(createProjectSchema), projectsCre
 router.patch("/projects/:id", requireAuth, validate(updateProjectSchema), projectsUpdate);
 router.delete("/projects/:id", requireAuth, projectsRemove);
 router.post("/projects/:id/todos", requireAuth, validate(createTodoSchema), projectsCreateTodo);
+router.post("/projects/:id/todos/generate", requireAuth, projectsGenerateTodos);
 router.patch("/projects/:id/todos/:todoId", requireAuth, validate(updateTodoSchema), projectsUpdateTodo);
 router.delete("/projects/:id/todos/:todoId", requireAuth, projectsDeleteTodo);
 

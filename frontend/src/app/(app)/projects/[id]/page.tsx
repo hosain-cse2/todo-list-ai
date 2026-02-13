@@ -28,6 +28,8 @@ export default function ProjectDetailPage() {
   const [editDescription, setEditDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [isGeneratingTodos, setIsGeneratingTodos] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -180,6 +182,20 @@ export default function ProjectDetailPage() {
     }
   };
 
+  const handleGenerateTodos = async () => {
+    if (!id) return;
+    setGenerateError(null);
+    setIsGeneratingTodos(true);
+    try {
+      const updated = await projectsApi.generateTodos(id);
+      setProject(updated);
+    } catch (err: unknown) {
+      setGenerateError(err instanceof Error ? err.message : "Failed to generate todos");
+    } finally {
+      setIsGeneratingTodos(false);
+    }
+  };
+
   const { totalCount, completedCount, pendingCount } = useMemo(() => {
     if (!project) {
       return { totalCount: 0, completedCount: 0, pendingCount: 0 };
@@ -325,15 +341,19 @@ export default function ProjectDetailPage() {
           </button>
           <button
             type="button"
-            onClick={() => {}}
-            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            onClick={handleGenerateTodos}
+            disabled={isGeneratingTodos}
+            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
             title="Generate todo suggestions from project name and description"
           >
-            ✨ Generate with AI
+            {isGeneratingTodos ? "Generating…" : "✨ Generate with AI"}
           </button>
         </div>
         {addTodoError && (
           <p className="text-sm text-rose-600 dark:text-rose-400">{addTodoError}</p>
+        )}
+        {generateError && (
+          <p className="text-sm text-rose-600 dark:text-rose-400">{generateError}</p>
         )}
         {editTodoError && (
           <p className="text-sm text-rose-600 dark:text-rose-400">{editTodoError}</p>

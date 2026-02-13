@@ -112,3 +112,13 @@ export async function deleteTodo(projectId: string, todoId: string): Promise<voi
   }
 }
 
+export async function generateTodos(projectId: string): Promise<Project> {
+  const res = await apiFetch<{ project: Project; generatedCount: number }>(
+    `${API_BASE}/api/projects/${projectId}/todos/generate`,
+    {
+      method: "POST",
+    },
+  );
+  return res.project;
+}
+
