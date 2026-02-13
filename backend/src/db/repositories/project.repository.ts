@@ -32,6 +32,26 @@ export async function findById(id: string, userId?: string) {
   });
 }
 
+export async function update(
+  id: string,
+  userId: string,
+  data: { name?: string; description?: string },
+) {
+  const project = await findById(id, userId);
+  if (!project) return null;
+
+  return prisma.project.update({
+    where: { id },
+    data: {
+      ...(data.name !== undefined && { name: data.name.trim() }),
+      ...(data.description !== undefined && { description: data.description.trim() }),
+    },
+    include: {
+      todos: { orderBy: { createdAt: "desc" } },
+    },
+  });
+}
+
 export async function deleteById(id: string, userId: string) {
   return prisma.project.deleteMany({
     where: { id, userId },

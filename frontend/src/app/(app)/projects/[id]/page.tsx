@@ -18,6 +18,11 @@ export default function ProjectDetailPage() {
   const [isAddingTodo, setIsAddingTodo] = useState(false);
   const [addTodoError, setAddTodoError] = useState<string | null>(null);
   const [deletingTodoId, setDeletingTodoId] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -54,6 +59,43 @@ export default function ProjectDetailPage() {
       );
     } finally {
       setDeletingTodoId(null);
+    }
+  };
+
+  const startEditing = () => {
+    if (project) {
+      setEditName(project.name);
+      setEditDescription(project.description);
+      setEditError(null);
+      setIsEditing(true);
+    }
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditError(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!id || !project) return;
+    const name = editName.trim();
+    if (!name) {
+      setEditError("Name is required");
+      return;
+    }
+    setEditError(null);
+    setIsSaving(true);
+    try {
+      const updated = await projectsApi.updateProject(id, {
+        name,
+        description: editDescription.trim(),
+      });
+      setProject(updated);
+      setIsEditing(false);
+    } catch (err: unknown) {
+      setEditError(err instanceof Error ? err.message : "Failed to update project");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -103,8 +145,8 @@ export default function ProjectDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-center gap-2">
             <Link
               href="/projects"
@@ -113,17 +155,68 @@ export default function ProjectDetailPage() {
               Projects
             </Link>
             <span className="text-zinc-400">/</span>
-            <span className="text-xs uppercase tracking-[0.2em] text-zinc-500">
+            <span className="truncate text-xs uppercase tracking-[0.2em] text-zinc-500">
               {project.name}
             </span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {project.name}
-          </h1>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {project.description}
-          </p>
+          {isEditing ? (
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Project name"
+                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-lg font-semibold transition-colors focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-600"
+              />
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Description"
+                rows={2}
+                className="w-full resize-none rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm transition-colors focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-600"
+              />
+              {editError && (
+                <p className="text-sm text-rose-600 dark:text-rose-400">{editError}</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleSaveEdit}
+                  disabled={isSaving}
+                  className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-100"
+                >
+                  {isSaving ? "Saving…" : "Save"}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelEditing}
+                  disabled={isSaving}
+                  className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {project.name}
+              </h1>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                {project.description || "—"}
+              </p>
+            </>
+          )}
         </div>
+        {!isEditing && (
+          <button
+            type="button"
+            onClick={startEditing}
+            className="shrink-0 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          >
+            Edit
+          </button>
+        )}
       </div>
 
       {/* Stats */}

@@ -67,6 +67,29 @@ export async function deleteTodo(req: AuthRequest, res: Response): Promise<void>
   res.status(204).send();
 }
 
+export async function update(req: AuthRequest, res: Response): Promise<void> {
+  const { id } = req.params;
+  const userId = req.user!.sub;
+  const { name, description } = req.body as { name?: string; description?: string };
+
+  if (name === undefined && description === undefined) {
+    res.status(400).json({ message: "Provide name and/or description to update" });
+    return;
+  }
+
+  const project = await projectRepository.update(id, userId, {
+    ...(name !== undefined && { name }),
+    ...(description !== undefined && { description }),
+  });
+
+  if (!project) {
+    res.status(404).json({ message: "Project not found" });
+    return;
+  }
+
+  res.json({ project });
+}
+
 export async function remove(req: AuthRequest, res: Response): Promise<void> {
   const { id } = req.params;
   const userId = req.user!.sub;

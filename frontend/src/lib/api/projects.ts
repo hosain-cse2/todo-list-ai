@@ -44,6 +44,23 @@ export async function createProject(
   return data.project;
 }
 
+export async function updateProject(
+  projectId: string,
+  data: { name?: string; description?: string },
+): Promise<Project> {
+  const body: { name?: string; description?: string } = {};
+  if (data.name !== undefined) body.name = data.name.trim();
+  if (data.description !== undefined) body.description = data.description.trim();
+  const res = await apiFetch<{ project: Project }>(
+    `${API_BASE}/api/projects/${projectId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    },
+  );
+  return res.project;
+}
+
 export async function createTodo(projectId: string, text: string): Promise<Todo> {
   const data = await apiFetch<{ todo: Todo }>(
     `${API_BASE}/api/projects/${projectId}/todos`,
