@@ -342,9 +342,13 @@ export default function ProjectDetailPage() {
           <button
             type="button"
             onClick={handleGenerateTodos}
-            disabled={isGeneratingTodos}
+            disabled={isGeneratingTodos || (project?.todos.length ?? 0) > 0}
             className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
-            title="Generate todo suggestions from project name and description"
+            title={
+              project?.todos.length
+                ? "Generate todos is only available when the project has no todos"
+                : "Generate todo suggestions from project name and description"
+            }
           >
             {isGeneratingTodos ? "Generating…" : "✨ Generate with AI"}
           </button>
